@@ -9,6 +9,7 @@ import {
   addDoc,
   orderBy,
   limit,
+  serverTimestamp,
 } from "firebase/firestore";
 import { FishPondData } from ".";
 
@@ -17,7 +18,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBJR5qoT_jM0O-J1M5qIBS6AtP2gEZccVE",
   authDomain: "aqua-smart-be7ab.firebaseapp.com",
   projectId: "aqua-smart-be7ab",
-  storageBucket: "aqua-smart-be7ab.appspot.com",
+  storageBucket: "aqua-smart-be7ab.firebasestorage.app",
   messagingSenderId: "66638723463",
   appId: "1:66638723463:web:8c2d9574ee7dcbac927b22",
   measurementId: "G-Z91T7RXEFN",
@@ -84,7 +85,10 @@ export const saveFishPondData = async (fishPondData: FishPondData) => {
     if (!db) initFirebaseApp();
 
     const collectionRef = collection(db, "fish_pond");
-    const docRef = await addDoc(collectionRef, fishPondData);
+    const docRef = await addDoc(collectionRef, {
+      timestamp: serverTimestamp(),
+      ...fishPondData,
+    });
     return docRef;
   } catch (error) {
     console.log(error);
@@ -98,7 +102,10 @@ export const saveFishPondLiveData = async (fishPondData: {
     if (!db) initFirebaseApp();
 
     const collectionRef = collection(db, "fish_pond_live");
-    const docRef = await addDoc(collectionRef, fishPondData);
+    const docRef = await addDoc(collectionRef, {
+      timestamp: serverTimestamp(),
+      ...fishPondData,
+    });
     return docRef;
   } catch (error) {
     console.log(error);
