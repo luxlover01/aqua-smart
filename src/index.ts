@@ -39,11 +39,10 @@ app.post("/send_data", (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to save data." });
   }
 });
-app.get("/schedule", (req: Request, res: Response) => {
+app.get("/schedule", async (req: Request, res: Response) => {
   try {
-    console.log(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string));
-
-    res.status(200).json(getLatestSchedule());
+    const a = await getLatestSchedule();
+    res.status(200).json(a);
   } catch (error) {
     console.log(error);
   }

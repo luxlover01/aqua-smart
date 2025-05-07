@@ -10,6 +10,8 @@ import {
   orderBy,
   limit,
   serverTimestamp,
+  getDoc,
+  doc,
 } from "firebase/firestore";
 import { FishPondData } from ".";
 
@@ -115,22 +117,12 @@ export const getLatestSchedule = async (): Promise<any | null> => {
   try {
     if (!db) initFirebaseApp();
 
-    const colRef = collection(db, "schedule");
-    // order by your timestamp field descending, limit to 1
-    const latestQuery = query(colRef, orderBy("createdAt", "desc"), limit(1));
-    const snap = await getDocs(latestQuery);
+    const scheduleRef = doc(db, "schedule", "default");
+    const docSnap = await getDoc(scheduleRef);
 
-    if (snap.empty) {
-      console.log("No schedule documents found.");
-      return null;
-    }
-
-    // there will be exactly one doc in the snapshot
-    const doc = snap.docs[0];
-    console.log("Latest schedule:", doc.data());
-    return { id: doc.id, ...doc.data() };
+    return docSnap.data();
   } catch (error) {
     console.error("Error fetching latest schedule:", error);
-    return null;
+    return {};
   }
 };
