@@ -2,6 +2,7 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import {
+  getDataToday,
   getLatestSchedule,
   initFirebaseApp,
   saveFishPondData,
@@ -161,7 +162,16 @@ app.post("/schedule", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to set schedule." });
   }
 });
+app.get("/data/report", async (req: Request, res: Response) => {
+  try {
+    const data = await getDataToday();
 
+    res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to set schedule." });
+  }
+});
 app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
 });

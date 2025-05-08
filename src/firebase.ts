@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   getDoc,
   doc,
+  where,
 } from "firebase/firestore";
 import { FishPondData } from ".";
 
@@ -124,5 +125,51 @@ export const getLatestSchedule = async (): Promise<any | null> => {
   } catch (error) {
     console.error("Error fetching latest schedule:", error);
     return {};
+  }
+};
+function getDateBounds(input: any) {
+  const d =
+    typeof input === "string" ? new Date(input + "T00:00:00") : new Date(input);
+
+  const pad = (n: any) => String(n).padStart(2, "0");
+  const fmt = (dateObj: any) => {
+    const Y = dateObj.getFullYear();
+    const M = pad(dateObj.getMonth() + 1);
+    const D = pad(dateObj.getDate());
+    return `${Y}-${M}-${D}`;
+  };
+
+  const startOfDay = fmt(d) + " 00:00:00";
+  const next = new Date(d);
+  next.setDate(d.getDate() + 1);
+  const startOfNextDay = fmt(next) + " 00:00:00";
+
+  return { startOfDay, startOfNextDay };
+}
+export const getDataToday = async () => {
+  try {
+    const readingsRef = collection(db, "fish_pond");
+
+    // For May 8, 2025:
+    // const startOfDay = "2025-05-08 00:00:00";
+    // const startOfNextDay = "2025-05-09 00:00:00";
+    const { startOfDay, startOfNextDay } = getDateBounds(new Date());
+
+    const q = query(
+      readingsRef,
+      where("date", ">=", startOfDay),
+      where("date", "<", startOfNextDay),
+      orderBy("date", "desc")
+    );
+    const snapshot = await getDocs(q);
+
+    const results = [] as any;
+    snapshot.forEach((doc) => {
+      results.push({ ...doc.data() });
+    });
+
+    return results;
+  } catch (error) {
+    console.log(error);
   }
 };
