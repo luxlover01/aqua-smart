@@ -103,20 +103,16 @@ app.post("/notif", async (req: Request, res: Response) => {
 app.get("/data/history", async (req: Request, res: Response) => {
   try {
     const db = admin.firestore();
-    const snap = await db.collection("fish_pond").orderBy("date", "asc").get();
+    const snap = await db.collection("fish_pond").orderBy("date", "desc").get();
 
     const history: FishPondData[] = snap.docs.map((d) => {
       const data: any = d.data();
       const ts = data.date;
-      const dateStr =
-        ts instanceof admin.firestore.Timestamp
-          ? ts.toDate().toISOString()
-          : new Date(ts).toISOString();
 
       return {
         temperature: data.temperature_c,
         ph_level: data.ph,
-        date: dateStr,
+        date: data.date,
       };
     });
 
