@@ -100,6 +100,72 @@ app.post("/notif", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to send notification." });
   }
 });
+app.get("/data/history", async (req: Request, res: Response) => {
+  try {
+    const db = admin.firestore();
+    const snap = await db.collection("fish_pond").orderBy("date", "asc").get();
+
+    const history: FishPondData[] = snap.docs.map((d) => {
+      const data: any = d.data();
+      const ts = data.date;
+      const dateStr =
+        ts instanceof admin.firestore.Timestamp
+          ? ts.toDate().toISOString()
+          : new Date(ts).toISOString();
+
+      return {
+        temperature: data.temperature_c,
+        ph_level: data.ph,
+        date: dateStr,
+      };
+    });
+
+    res.status(200).json(history);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch history." });
+  }
+});
+
+app.get("/data/live", async (req: Request, res: Response) => {
+  try {
+    const db = admin.firestore();
+    const snap = await db
+      .collection("fish_pond_live")
+      .orderBy("timestamp", "desc")
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      res.status(404).json({ error: "No live data available." });
+      return;
+    }
+
+    const doc = snap.docs[0].data();
+    const result: FishPondData = {
+      temperature: doc.temperature_c,
+      ph_level: doc.ph,
+      date: doc.timestamp.toDate().toISOString(),
+    };
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch live data." });
+  }
+});
+app.post("/schedule", async (req: Request, res: Response) => {
+  const { time, interval } = req.body;
+  try {
+    const db = admin.firestore();
+    await db.collection("schedule").doc("default").set({ time, interval });
+    res.status(204).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to set schedule." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
 });
