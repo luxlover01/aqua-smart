@@ -69,7 +69,7 @@ app.post("/notif", async (req: Request, res: Response) => {
     // List of possible titles with emojis
     const titles = [
       "⚠️ Warning!",
-      "🔥 Alert!",
+      "🔥 Emergency!",
       "🚨 Emergency!",
       "🔔 Notification!",
       "📢 Heads up!",
@@ -104,7 +104,10 @@ app.post("/notif", async (req: Request, res: Response) => {
 app.get("/data/history", async (req: Request, res: Response) => {
   try {
     const db = admin.firestore();
-    const snap = await db.collection("fish_pond").orderBy("date", "desc").get();
+    const snap = await db
+      .collection("fish_pond_live")
+      .orderBy("timestamp", "desc")
+      .get();
 
     const history: FishPondData[] = snap.docs.map((d) => {
       const data: any = d.data();
